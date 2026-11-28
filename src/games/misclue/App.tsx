@@ -597,6 +597,28 @@ function ClueScreen({ state, setState, aiBusy }: { state: GameState; setState: D
           {player.isAI && aiBusy && <div className="ms-thinking" style={{marginTop:10}}><span className="ms-dot"/><span className="ms-dot"/><span className="ms-dot"/> Thinking</div>}
         </div>
 
+        <p className="ms-kicker" style={{marginBottom:8}}>Clue order</p>
+        <div style={{display:"grid",gap:8,marginBottom:12}}>
+          {clueOrder.map((p, i) => {
+            const clues = state.clues.filter(c => c.game === state.gameNumber && c.round === state.roundNumber && c.seat === p.seat).map(c => c.text).join(" · ");
+            const isCurrent = player.seat === p.seat && p.alive;
+            return (
+              <div key={p.seat} className="ms-reveal-item" style={{ alignItems: "flex-start", border: isCurrent ? "1px solid rgba(245,185,66,.35)" : undefined, background: isCurrent ? "rgba(245,185,66,.07)" : undefined }}>
+                <div style={{minWidth:0, flex:1}}>
+                  <div className="ms-row" style={{gap:10}}>
+                    <span className="ms-role-badge" style={{background:"rgba(245,185,66,.16)",color:"var(--ms-yellow)",minWidth:32,justifyContent:"center"}}>{i + 1}</span>
+                    <strong>{p.isAI ? `${p.emoji || "🤖"} ` : ""}{p.name}</strong>
+                  </div>
+                  <div style={{fontSize:".85rem",color: clues ? "var(--ms-text)" : "var(--ms-muted)",marginTop:4,lineHeight:1.35,wordBreak:"break-word"}}>
+                    {clues || (isCurrent ? (p.isAI ? "Thinking..." : "Your turn") : "Waiting")}
+                  </div>
+                </div>
+                {isCurrent && <span className="ms-role-badge" style={{background:"rgba(245,185,66,.16)",color:"var(--ms-yellow)"}}>Now</span>}
+              </div>
+            );
+          })}
+        </div>
+
         {!player.isAI && (
           <div className="ms-input-row">
             <input className="ms-input" value={text} maxLength={32} placeholder="Type a short clue..." onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==="Enter") submit();}} />
@@ -604,24 +626,7 @@ function ClueScreen({ state, setState, aiBusy }: { state: GameState; setState: D
           </div>
         )}
 
-        <div className="ms-divider" />
-        <p className="ms-kicker" style={{marginBottom:8}}>Clue order</p>
-        <div style={{display:"grid",gap:8,marginBottom:12}}>
-          {clueOrder.map((p, i) => {
-            const done = state.clues.some(c => c.game === state.gameNumber && c.round === state.roundNumber && c.seat === p.seat);
-            const isCurrent = player.seat === p.seat && p.alive;
-            return (
-              <div key={p.seat} className="ms-reveal-item" style={{ border: isCurrent ? "1px solid rgba(245,185,66,.35)" : undefined, background: isCurrent ? "rgba(245,185,66,.07)" : undefined }}>
-                <div className="ms-row" style={{gap:10}}>
-                  <span className="ms-role-badge" style={{background:"rgba(245,185,66,.16)",color:"var(--ms-yellow)",minWidth:32,justifyContent:"center"}}>{i + 1}</span>
-                  <strong>{p.isAI ? `${p.emoji || "🤖"} ` : ""}{p.name}</strong>
-                </div>
-                <span className="ms-muted" style={{fontSize:".85rem"}}>{done ? "Clue given" : isCurrent ? "Now" : "Waiting"}</span>
-              </div>
-            );
-          })}
-        </div>
-        <p className="ms-muted" style={{fontSize:".9rem"}}>Alive: {alive.length} · Turn {state.turnIndex+1}/{alive.length}</p>
+        <p className="ms-muted" style={{fontSize:".9rem",marginTop:12}}>Alive: {alive.length} · Turn {state.turnIndex+1}/{alive.length}</p>
         {state.message && <p style={{marginTop:12,color:"var(--ms-yellow)",fontWeight:700}}>{state.message}</p>}
       </div>
 
@@ -630,14 +635,10 @@ function ClueScreen({ state, setState, aiBusy }: { state: GameState; setState: D
         <h3 style={{marginBottom:12}}>Players</h3>
         <div style={{display:"grid",gap:8}}>
           {state.players.map(p => {
-            const clues = state.clues.filter(c=>c.game === state.gameNumber && c.round === state.roundNumber && c.seat===p.seat).map(c=>c.text).join(" · ");
             const isCurrent = player.seat===p.seat && p.alive;
             return (
-              <div key={p.seat} className={cx("ms-reveal-item", !p.alive && "is-out")} style={{alignItems:"flex-start", border: isCurrent ? "1px solid rgba(245,185,66,.35)" : undefined, background: isCurrent ? "rgba(245,185,66,.07)" : undefined}}>
-                <div>
-                  <strong>{p.isAI ? p.emoji+" " : ""}{p.name}</strong> {!p.alive ? <span style={{color:"var(--ms-dim)"}}>(out)</span> : ""}
-                  <div style={{fontSize:".78rem",color:"var(--ms-muted)",marginTop:2,lineHeight:1.35}}>{clues || (p.alive ? "No clue yet" : "—")}</div>
-                </div>
+              <div key={p.seat} className={cx("ms-reveal-item", !p.alive && "is-out")} style={{ border: isCurrent ? "1px solid rgba(245,185,66,.35)" : undefined, background: isCurrent ? "rgba(245,185,66,.07)" : undefined }}>
+                <strong>{p.isAI ? p.emoji+" " : ""}{p.name}{!p.alive ? <span style={{color:"var(--ms-dim)",fontWeight:600}}> (out)</span> : ""}</strong>
                 {isCurrent && <span className="ms-role-badge" style={{background:"rgba(245,185,66,.16)",color:"var(--ms-yellow)"}}>Turn</span>}
               </div>
             );
